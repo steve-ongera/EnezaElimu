@@ -126,16 +126,92 @@ def student_list(request, class_id, term_id):
     
     # Create a nested dictionary for easy access to results
     students_results = {}
+    student_averages = {}
+    
     for student in students:
         students_results[student.id] = {}
         cats = CAT.objects.filter(student=student, term=term)
+        total_score = 0
+        valid_subjects = 0
+        
         for cat in cats:
             students_results[student.id][cat.subject.id] = cat
+            total_score += cat.end_term
+            valid_subjects += 1
+        
+        # Calculate average and grade for student
+        if valid_subjects > 0:
+            term_average = round(total_score / valid_subjects, 2)
+            
+            # Create a temporary CAT instance to use the grading methods
+            temp_cat = CAT(cat1=term_average, cat2=term_average, cat3=term_average)
+            temp_cat.end_term = term_average
+            
+            # Use the existing methods
+            grade_points, letter_grade = temp_cat.assign_grade_points()
+            position = temp_cat.determine_position()
+            
+            student_averages[student.id] = {
+                'average': term_average,
+                'grade': letter_grade,
+                'grade_points': grade_points,
+                'position': position,
+                'name': student.name,
+                'admission': student.admission_number
+            }
+    
+    # Sort students by average score (descending)
+    sorted_students = dict(sorted(
+        student_averages.items(), 
+        key=lambda x: x[1]['average'], 
+        reverse=True
+    ))
+    
+    # Add position numbers
+    position = 1
+    for student_id in sorted_students:
+        sorted_students[student_id]['position_number'] = position
+        position += 1
     
     return render(request, 'school/student_list.html', {
         'class_of_study': class_of_study,
         'term': term,
-        'students': students,
+        'students': sorted_students,
         'subjects': subjects,
         'students_results': students_results,
+    })
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Class_of_study, Term, Subject, CAT
+
+def subject_analysis(request, class_id, term_id):
+    class_of_study = get_object_or_404(Class_of_study, id=class_id)
+    term = get_object_or_404(Term, id=term_id)
+    subjects = Subject.objects.all()
+    
+    # Calculate average score for each subject
+    subject_averages = {}
+    for subject in subjects:
+        cats = CAT.objects.filter(
+            student__current_class=class_of_study,
+            term=term,
+            subject=subject
+        )
+        if cats.exists():
+            total_score = sum(cat.end_term for cat in cats)
+            average = round(total_score / cats.count(), 2)
+            subject_averages[subject.name] = average
+    
+    # Sort subjects by average score
+    sorted_subjects = dict(sorted(
+        subject_averages.items(), 
+        key=lambda x: x[1], 
+        reverse=True
+    ))
+    
+    return render(request, 'school/subject_analysis.html', {
+        'class_of_study': class_of_study,
+        'term': term,
+        'subject_averages': sorted_subjects
     })

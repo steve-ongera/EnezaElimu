@@ -10,13 +10,16 @@
         <table class="min-w-full bg-white border border-gray-300">
             <thead>
                 <tr class="bg-gray-100">
+                    <th class="border p-2">Position</th>
                     <th class="border p-2">Student Name</th>
                     <th class="border p-2">Admission No.</th>
                     {% for subject in subjects %}
                         <th colspan="5" class="border p-2 text-center">{{ subject.name }}</th>
                     {% endfor %}
+                    <th colspan="3" class="border p-2 text-center bg-green-100">Overall Performance</th>
                 </tr>
                 <tr class="bg-gray-50">
+                    <th class="border p-2"></th>
                     <th class="border p-2"></th>
                     <th class="border p-2"></th>
                     {% for subject in subjects %}
@@ -26,19 +29,23 @@
                         <th class="border p-2">AVG</th>
                         <th class="border p-2">Grade</th>
                     {% endfor %}
+                    <th class="border p-2 bg-green-50">Average</th>
+                    <th class="border p-2 bg-green-50">Grade</th>
+                    <th class="border p-2 bg-green-50">Remarks</th>
                 </tr>
             </thead>
             <tbody>
-                {% for student in students %}
+                {% for student_id, student_data in students.items %}
                     <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
-                        <td class="border p-2">{{ student.name }}</td>
-                        <td class="border p-2">{{ student.admission_number }}</td>
+                        <td class="border p-2 text-center font-bold">{{ student_data.position_number }}</td>
+                        <td class="border p-2">{{ student_data.name }}</td>
+                        <td class="border p-2">{{ student_data.admission }}</td>
                         {% for subject in subjects %}
-                            {% with cat_result=students_results|get_item:student.id|get_item:subject.id %}
+                            {% with cat_result=students_results|get_item:student_id|get_item:subject.id %}
                                 {% if cat_result %}
-                                    <td class="border p-2 text-center">{{ cat_result.cat1 }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.cat2 }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.cat3 }}</td>
+                                    <td class="border p-2 text-center">{{ cat_result.cat1|floatformat:2 }}</td>
+                                    <td class="border p-2 text-center">{{ cat_result.cat2|floatformat:2 }}</td>
+                                    <td class="border p-2 text-center">{{ cat_result.cat3|floatformat:2  }}</td>
                                     <td class="border p-2 text-center">{{ cat_result.end_term }}</td>
                                     <td class="border p-2 text-center">{{ cat_result.letter_grade }}</td>
                                 {% else %}
@@ -50,10 +57,19 @@
                                 {% endif %}
                             {% endwith %}
                         {% endfor %}
+                        <td class="border p-2 text-center font-bold bg-green-50">
+                            {{ student_data.average }}
+                        </td>
+                        <td class="border p-2 text-center font-bold bg-green-50">
+                            {{ student_data.grade }}
+                        </td>
+                        <td class="border p-2 text-center bg-green-50">
+                            {{ student_data.position }}
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="{{ subjects|length|multiply:5|add:2 }}" class="border p-4 text-center">
+                        <td colspan="{{ subjects|length|multiply:5|add:5 }}" class="border p-4 text-center">
                             No students found.
                         </td>
                     </tr>
@@ -68,6 +84,15 @@
             Back to Terms
         </a>
     </div>
+
+    <!-- Add this button next to your "Back to Terms" button in student_list.html -->
+        <div class="mt-4 flex space-x-4">
+           
+            <a href="{% url 'subject_analysis' class_of_study.id term.id %}" 
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                View Subject Analysis
+            </a>
+        </div>
 </div>
 
 <style>

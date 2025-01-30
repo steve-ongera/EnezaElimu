@@ -9,4 +9,7 @@ urlpatterns = [
     path('classes/', views.class_list, name='class_list'),
     path('classes/<int:class_id>/terms/', views.term_list, name='term_list'),
     path('classes/<int:class_id>/terms/<int:term_id>/students/',  views.student_list, name='student_list'),
+
+    # urls.py
+    path('classes/<int:class_id>/terms/<int:term_id>/analysis/', views.subject_analysis, name='subject_analysis'),
 ]
