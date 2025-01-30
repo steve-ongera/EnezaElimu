@@ -1,0 +1,12 @@
+<h1>Terms for {{ class_of_study.name }} - {{ class_of_study.stream }}</h1>
+<div class="term-list">
+    {% for term in terms %}
+        <div class="term-card">
+            <h2>{{ term.name }} {{ term.year }}</h2>
+            <a href="{% url 'student_list' class_of_study.id term.id %}" class="btn">View Students</a>
+        </div>
+    {% empty %}
+        <p>No terms found.</p>
+    {% endfor %}
+</div>
+<a href="{% url 'class_list' %}" class="btn back">Back to Classes</a>

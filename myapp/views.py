@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from .models import *
 
-def student_list(request):
+def general_student_list(request):
     students = Student.objects.all()
     return render(request, 'students/student_list.html', {'students': students})
 
@@ -103,3 +103,39 @@ def student_progress(request, student_id):
         'progress_data': progress_data,
     }
     return render(request, 'marks/student_progress.html', context)
+
+def class_list(request):
+    classes = Class_of_study.objects.all()
+    return render(request, 'school/class_list.html', {
+        'classes': classes
+    })
+
+def term_list(request, class_id):
+    class_of_study = get_object_or_404(Class_of_study, id=class_id)
+    terms = Term.objects.all()
+    return render(request, 'school/term_list.html', {
+        'class_of_study': class_of_study,
+        'terms': terms
+    })
+
+def student_list(request, class_id, term_id):
+    class_of_study = get_object_or_404(Class_of_study, id=class_id)
+    term = get_object_or_404(Term, id=term_id)
+    students = Student.objects.filter(current_class=class_of_study)
+    subjects = Subject.objects.all()
+    
+    # Create a nested dictionary for easy access to results
+    students_results = {}
+    for student in students:
+        students_results[student.id] = {}
+        cats = CAT.objects.filter(student=student, term=term)
+        for cat in cats:
+            students_results[student.id][cat.subject.id] = cat
+    
+    return render(request, 'school/student_list.html', {
+        'class_of_study': class_of_study,
+        'term': term,
+        'students': students,
+        'subjects': subjects,
+        'students_results': students_results,
+    })

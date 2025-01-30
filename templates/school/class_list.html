@@ -1,0 +1,11 @@
+<h1>Classes</h1>
+<div class="class-list">
+    {% for class in classes %}
+        <div class="class-card">
+            <h2>{{ class.name }} - {{ class.stream }}</h2>
+            <a href="{% url 'term_list' class.id %}" class="btn">View Terms</a>
+        </div>
+    {% empty %}
+        <p>No classes found.</p>
+    {% endfor %}
+</div>
