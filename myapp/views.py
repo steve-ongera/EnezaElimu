@@ -105,7 +105,7 @@ def student_progress(request, student_id):
     return render(request, 'marks/student_progress.html', context)
 
 def class_list(request):
-    classes = Class_of_study.objects.all()
+    classes = Class_of_study.objects.all().order_by('name', 'stream')
     return render(request, 'school/class_list.html', {
         'classes': classes
     })
