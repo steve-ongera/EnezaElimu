@@ -112,7 +112,9 @@ def class_list(request):
 
 def term_list(request, class_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
-    terms = Term.objects.all()
+    terms = Term.objects.filter(
+        # your filtering conditions here
+    ).order_by('-year', 'name')  # Sort by year descending, then term name
     return render(request, 'school/term_list.html', {
         'class_of_study': class_of_study,
         'terms': terms
