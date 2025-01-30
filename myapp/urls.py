@@ -12,4 +12,11 @@ urlpatterns = [
 
     # urls.py
     path('classes/<int:class_id>/terms/<int:term_id>/analysis/', views.subject_analysis, name='subject_analysis'),
+    
+    path('register/', views.register, name='register'),
+    path('login/', views.student_login, name='login'),
+    path('logout/', views.student_logout, name='logout'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
+    
 ]

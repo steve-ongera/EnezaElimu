@@ -1,5 +1,70 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404 ,redirect
 from .models import *
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from .forms import StudentRegistrationForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+def register(request):
+    if request.method == "POST":
+        form = StudentRegistrationForm(request.POST)
+        if form.is_valid():
+            admission_number = form.cleaned_data['admission_number']
+            name = form.cleaned_data['name']
+            password = form.cleaned_data['password']
+
+            # Get the student instance
+            student = Student.objects.get(admission_number=admission_number)
+
+            # Create the user with username as admission_number
+            user = User.objects.create_user(
+                username=admission_number,
+                password=password,
+                first_name=student.name.split()[0],  # First part of name
+                last_name=" ".join(student.name.split()[1:]),  # Rest of the name
+            )
+            
+            # Log the user in
+            login(request, user)
+            return redirect('dashboard')  # Redirect to a student dashboard
+
+    else:
+        form = StudentRegistrationForm()
+
+    return render(request, 'auth/register.html', {'form': form})
+
+
+def student_login(request):
+    if request.method == "POST":
+        admission_number = request.POST['admission_number']
+        password = request.POST['password']
+
+        # Authenticate user
+        user = authenticate(request, username=admission_number, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')  # Redirect to dashboard
+        else:
+            messages.error(request, "Invalid admission number or password.")
+
+    return render(request, 'auth/login.html')
+
+
+def student_logout(request):
+    logout(request)
+    return redirect('login')  # Redirect to login page after logout
+
+
+@login_required
+def dashboard(request):
+    # Get the logged-in student's details using the admission number
+    student = Student.objects.get(admission_number=request.user.username)
+
+    return render(request, 'auth/dashboard.html', {'student': student})
+
 
 def general_student_list(request):
     students = Student.objects.all()
