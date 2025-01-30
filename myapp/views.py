@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404 ,redirect
 from .models import *
 from django.contrib.auth.models import User
 from django.contrib.auth import login
-from .forms import StudentRegistrationForm
+from .forms import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -379,3 +379,37 @@ def subject_analysis(request, class_id, term_id):
         'term': term,
         'subject_averages': sorted_subjects
     })
+
+
+
+
+@login_required
+def student_profile(request):
+    """View for students to see their profile"""
+    # Assuming student is linked to user via admission number or some other field
+    student = get_object_or_404(Student, admission_number=request.user.username)
+    
+    context = {
+        'student': student
+    }
+    return render(request, 'students/profile.html', context)
+
+@login_required
+def edit_student_profile(request):
+    """View for students to edit certain fields of their profile"""
+    student = get_object_or_404(Student, admission_number=request.user.username)
+    
+    if request.method == 'POST':
+        form = StudentProfileEditForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('student_profile')
+    else:
+        form = StudentProfileEditForm(instance=student)
+    
+    context = {
+        'form': form,
+        'student': student
+    }
+    return render(request, 'students/edit_profile.html', context)

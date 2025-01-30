@@ -18,6 +18,9 @@ urlpatterns = [
     path('logout/', views.student_logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('individual_student_progress/' , views.individual_student_progress , name='individual_student_progress'),
+
+    path('profile/', views.student_profile, name='student_profile'),
+    path('profile/edit/', views.edit_student_profile, name='edit_student_profile'),
     
     
 ]
