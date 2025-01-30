@@ -169,6 +169,103 @@ def student_progress(request, student_id):
     }
     return render(request, 'marks/student_progress.html', context)
 
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required
+def individual_student_progress(request):
+    try:
+        student = Student.objects.get(admission_number=request.user.username)
+    except Student.DoesNotExist:
+        return render(request, 'marks/no_results.html', {'message': 'Student record not found.'})
+
+    terms = Term.objects.all().order_by('-year', 'name')
+    subjects = Subject.objects.all()
+    progress_data = []
+
+    for term in terms:
+        term_data = {
+            'term': term,
+            'subjects': [],
+            'term_average': 0,
+            'overall_grade': '',
+            'position': ''
+        }
+        
+        total_score = 0
+        subject_count = 0
+        
+        for subject in subjects:
+            try:
+                cat = CAT.objects.get(student=student, term=term, subject=subject)
+                subject_data = {
+                    'subject': subject.name,
+                    'cat1': cat.cat1,
+                    'cat2': cat.cat2,
+                    'cat3': cat.cat3,
+                    'average': cat.end_term,  # Used in graph
+                    'grade': cat.letter_grade,
+                    'grade_points': cat.grade_points,
+                    'position': cat.position
+                }
+                total_score += cat.end_term
+                subject_count += 1
+            except CAT.DoesNotExist:
+                subject_data = {
+                    'subject': subject.name,
+                    'cat1': 'N/A',
+                    'cat2': 'N/A',
+                    'cat3': 'N/A',
+                    'average': 0,  # Default to 0 for graph
+                    'grade': 'N/A',
+                    'grade_points': 'N/A',
+                    'position': 'N/A'
+                }
+            
+            term_data['subjects'].append(subject_data)
+        
+        # Calculate term averages
+        if subject_count > 0:
+            term_data['term_average'] = round(total_score / subject_count, 2)
+            if term_data['term_average'] >= 80:
+                term_data['overall_grade'] = 'A'
+                term_data['position'] = 'First Class'
+            elif term_data['term_average'] >= 75:
+                term_data['overall_grade'] = 'A-'
+                term_data['position'] = 'First Class'
+            elif term_data['term_average'] >= 70:
+                term_data['overall_grade'] = 'B+'
+                term_data['position'] = 'First Class'
+            elif term_data['term_average'] >= 65:
+                term_data['overall_grade'] = 'B'
+                term_data['position'] = 'Second Class Upper'
+            elif term_data['term_average'] >= 60:
+                term_data['overall_grade'] = 'B-'
+                term_data['position'] = 'Second Class Upper'
+            elif term_data['term_average'] >= 55:
+                term_data['overall_grade'] = 'C+'
+                term_data['position'] = 'Second Class Lower'
+            elif term_data['term_average'] >= 50:
+                term_data['overall_grade'] = 'C'
+                term_data['position'] = 'Second Class Lower'
+            elif term_data['term_average'] >= 40:
+                term_data['overall_grade'] = 'D'
+                term_data['position'] = 'Pass'
+            else:
+                term_data['overall_grade'] = 'F'
+                term_data['position'] = 'Fail'
+        
+        progress_data.append(term_data)
+
+    context = {
+        'student': student,
+        'progress_data': progress_data,
+    }
+    return render(request, 'marks/individual_student_progress.html', context)
+
+
+
 def class_list(request):
     classes = Class_of_study.objects.all().order_by('name', 'stream')
     return render(request, 'school/class_list.html', {
