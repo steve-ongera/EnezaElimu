@@ -19,9 +19,54 @@ class Student(models.Model):
     admission_number = models.CharField(max_length=20, unique=True)
     date_of_birth = models.DateField()
     current_class = models.ForeignKey(Class_of_study, on_delete=models.SET_NULL, null=True, related_name='students')
+    
+    # Personal Information
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
+    admission_date = models.DateField(null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    
+    # Parent/Guardian Information
+    father_name = models.CharField(max_length=100, null=True, blank=True)
+    father_phone = models.CharField(max_length=15, null=True, blank=True)
+    father_occupation = models.CharField(max_length=100, null=True, blank=True)
+    
+    mother_name = models.CharField(max_length=100, null=True, blank=True)
+    mother_phone = models.CharField(max_length=15, null=True, blank=True)
+    mother_occupation = models.CharField(max_length=100, null=True, blank=True)
+    
+    # Guardian Information (if different from parents)
+    guardian_name = models.CharField(max_length=100, null=True, blank=True)
+    guardian_phone = models.CharField(max_length=15, null=True, blank=True)
+    guardian_relationship = models.CharField(max_length=50, null=True, blank=True)
+    guardian_address = models.TextField(null=True, blank=True)
+    
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Additional Information
+    blood_group = models.CharField(max_length=5, null=True, blank=True)
+    medical_conditions = models.TextField(null=True, blank=True)
+    previous_school = models.CharField(max_length=200, null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['admission_number']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.admission_number})"
+    
+    def get_age(self):
+        from datetime import date
+        today = date.today()
+        return today.year - self.date_of_birth.year - (
+            (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
+        )
 
 class Term(models.Model):
     name = models.CharField(max_length=50)  # Term 1, Term 2, Term 3
